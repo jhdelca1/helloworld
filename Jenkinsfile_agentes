@@ -64,6 +64,7 @@ pipeline{
             }
         }
         stage('Results'){
+            agent { label 'Secundario2' }
             steps{
                 junit 'result*.xml'
                 bat 'whoami'
