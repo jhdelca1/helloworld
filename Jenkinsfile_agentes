@@ -1,54 +1,46 @@
-pipeline {
+pipeline{
     agent any
-    stages {
-        stage('Getcode') {
-            steps {
-                echo 'Ejecutando etapa Getcode...'
-                bat 'whoami && hostname'
+    stages{
+        stage ('Getcode'){
+            steps{
                 git 'https://github.com/jhdelca1/helloworld.git'
+                bat 'whoami'
+                bat 'hostname'
             }
         }
-        stage('Build') {
-            agent { label 'Secundario1' }
-            steps {
-                echo 'Ejecutando etapa Build en el agente Secundario1...'
-                bat 'whoami && hostname'
+        stage ('Build'){
+            steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
                 bat 'dir'
             }
         }
-        stage('Test') {
-            parallel {
-                stage('Test Unit') {
-                    steps {
-                        echo 'Ejecutando etapa Test Unit...'
-                        bat 'whoami && hostname'
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            bat '''
-                                set PYTHONPATH=%WORKSPACE%
-                                python -m pytest --version
-                                pytest --junitxml=result-unit.xml test\unit
-                            '''
+        stage('Test'){
+            parallel{
+                stage('Test Unit'){
+                    steps{
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
+                        bat '''
+                            set PYTHONPATH=%WORKSPACE%
+                            python -m pytest --version
+                            pytest --junitxml=result-unit.xml test\\unit
+                        '''   
                         }
                     }
                 }
-                stage('RestWIREMOCK') {
-                    steps {
-                        echo 'Ejecutando etapa RestWIREMOCK...'
-                        bat 'whoami && hostname'
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            bat '''
-                                start java -jar C:\\Jose\\MasterDEVOPS\\Master\\Software\\wiremock-standalone-3.10.0.jar --port 9090 --root-dir C:\\Jose\\MasterDEVOPS\\Practicasdeclase\\Practica1\\helloworld\\test\\wiremock
+
+                stage('RestWIREMOCK'){
+                    steps{
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
+                            bat '''                                
+                                start java -jar C:\\Jose\\MasterDEVOPS\\Master\\Software\\wiremock-standalone-3.10.0.jar --port 9090 --root-dir  C:\\Jose\\MasterDEVOPS\\Practicasdeclase\\Practica1\\helloworld\\test\\wiremock
                                 set PYTHONPATH=%WORKSPACE%
                             '''
                         }
                     }
                 }
-                stage('RestFLASK') {
-                    steps {
-                        echo 'Ejecutando etapa RestFLASK...'
-                        bat 'whoami && hostname'
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                stage('RestFLASK'){
+                    steps{
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                             bat '''
                                 set FLASK_APP=app\\api.py
                                 start flask run
@@ -57,12 +49,11 @@ pipeline {
                     }
                 }
             }
+           
         }
-        stage('EjecutarRest') {
-            steps {
-                echo 'Ejecutando etapa EjecutarRest...'
-                bat 'whoami && hostname'
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+        stage('EjecutarRest'){
+            steps{
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                     bat '''
                         set PYTHONPATH=%WORKSPACE%
                         pytest --junitxml=result-rest.xml test\\rest
@@ -70,13 +61,11 @@ pipeline {
                 }
             }
         }
-        stage('Results') {
-            agent { label 'Secundario2' }
-            steps {
-                echo 'Ejecutando etapa Results en el agente Secundario2...'
-                bat 'whoami && hostname'
+        stage('Results'){
+            steps{
                 junit 'result*.xml'
             }
         }
+        
     }
 }
