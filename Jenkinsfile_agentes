@@ -12,6 +12,8 @@ pipeline{
             steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
                 bat 'dir'
+                bat 'whoami'
+                bat 'hostname'
             }
         }
         stage('Test'){
@@ -64,6 +66,8 @@ pipeline{
         stage('Results'){
             steps{
                 junit 'result*.xml'
+                bat 'whoami'
+                bat 'hostname'
             }
         }
         
