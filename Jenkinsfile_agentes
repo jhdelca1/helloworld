@@ -1,7 +1,8 @@
 pipeline{
-    agent any
+    agent none
     stages{
         stage ('Getcode'){
+            agent any
             steps{
                 git 'https://github.com/jhdelca1/helloworld.git'
                 bat 'whoami'
@@ -9,6 +10,7 @@ pipeline{
             }
         }
         stage ('Build'){
+            agent Secundario1
             steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
                 bat 'dir'
@@ -17,6 +19,7 @@ pipeline{
             }
         }
         stage('Test'){
+            agent principal            
             parallel{
                 stage('Test Unit'){
                     steps{
@@ -54,6 +57,7 @@ pipeline{
            
         }
         stage('EjecutarRest'){
+            agent principal                 
             steps{
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                     bat '''
@@ -64,7 +68,7 @@ pipeline{
             }
         }
         stage('Results'){
-            agent { label 'Secundario2' }
+            agent Secundario2
             steps{
                 junit 'result*.xml'
                 bat 'whoami'
