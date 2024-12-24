@@ -10,7 +10,7 @@ pipeline{
             }
         }
         stage ('Build'){
-            agent Secundario1
+            agent {Secundario1}
             steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
                 bat 'dir'
@@ -19,7 +19,7 @@ pipeline{
             }
         }
         stage('Test'){
-            agent principal            
+            agent {principal}
             parallel{
                 stage('Test Unit'){
                     steps{
@@ -57,7 +57,7 @@ pipeline{
            
         }
         stage('EjecutarRest'){
-            agent principal                 
+            agent {principal}                
             steps{
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                     bat '''
@@ -68,7 +68,7 @@ pipeline{
             }
         }
         stage('Results'){
-            agent Secundario2
+            agent {Secundario2}
             steps{
                 junit 'result*.xml'
                 bat 'whoami'
