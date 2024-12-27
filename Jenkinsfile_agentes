@@ -10,7 +10,7 @@ pipeline{
             }
         }
         stage ('Build'){
-            agent {Secundario1}
+            agent {'Secundario1'}
             steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
                 bat 'dir'
