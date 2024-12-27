@@ -49,7 +49,7 @@ pipeline{
                             bat '''
                                 set FLASK_APP=app\\api.py
                                 start flask run
-                                ping -n5 127.0.0.1
+                                ping -n 5 127.0.0.1
                             '''
                         }
                     }
