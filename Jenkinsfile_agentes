@@ -59,8 +59,7 @@ pipeline{
             }
            
         }
-        stage('EjecutarRest'){
-            agent {principal}                
+        stage('EjecutarRest'){                      
             steps{
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                     bat '''
@@ -71,8 +70,7 @@ pipeline{
                 }
             }
         }
-        stage('Results'){
-            agent {Secundario2}
+        stage('Results'){            
             steps{
                 junit 'result*.xml'
                 bat 'whoami'
