@@ -31,7 +31,7 @@ pipeline{
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                             bat '''                                
                                 start java -jar C:\\Jose\\MasterDEVOPS\\Master\\Software\\wiremock-standalone-3.10.0.jar --port 9090 --root-dir  C:\\Jose\\MasterDEVOPS\\Practicasdeclase\\Practica1\\helloworld\\test\\wiremock
-                                set PYTHONPATH=%WORKSPACE%
+                                set PYTHONPATH=%WORKSPACE%                                
                             '''
                         }
                     }
@@ -42,6 +42,7 @@ pipeline{
                             bat '''
                                 set FLASK_APP=app\\api.py
                                 start flask run
+                                sleep 3
                             '''
                         }
                     }
