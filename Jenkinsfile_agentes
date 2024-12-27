@@ -43,11 +43,13 @@ pipeline{
                     }
                 }
                 stage('RestFLASK'){
+                    agent {label 'Secundario1'}      
                     steps{
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                             bat '''
                                 set FLASK_APP=app\\api.py
                                 start flask run
+                                ping -n5 127.0.0.1
                             '''
                         }
                     }
@@ -56,6 +58,7 @@ pipeline{
            
         }
         stage('EjecutarRest'){                      
+            agent {label 'Secundario2'}                  
             steps{
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                     bat '''
