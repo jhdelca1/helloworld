@@ -57,15 +57,14 @@ pipeline{
             }
            
         }
-        stage('EjecutarRest'){                      
-            agent {label 'Secundario2'}                  
+        stage('EjecutarRest'){                                               
             steps{
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                     bat '''
                         set PYTHONPATH=%WORKSPACE%
                         pytest --junitxml=result-rest.xml test\\rest
                     '''
-                    stash name:'result-rest', includes:'result-rest.xml'
+                    stash name:'eje-rest', includes:'result-rest.xml'
                 }
             }
         }
