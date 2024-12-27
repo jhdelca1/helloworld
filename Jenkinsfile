@@ -42,7 +42,7 @@ pipeline{
                             bat '''
                                 set FLASK_APP=app\\api.py
                                 start flask run
-                                sleep 3
+                                ping -n 5 127.0.0.1
                             '''
                         }
                     }
