@@ -4,9 +4,7 @@ pipeline{
         stage ('Getcode'){           
             steps{
                 git 'https://github.com/jhdelca1/helloworld.git'
-                echo WORSPACE                
-                bat 'whoami'
-                bat 'hostname'                
+                bat 'dir'                
                 stash name:'code', includes:'*'
             }
         }
@@ -14,9 +12,7 @@ pipeline{
             agent {label 'Secundario1'}
             steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
-                bat 'dir'
-                bat 'whoami'
-                bat 'hostname'
+               
             }
         }
         stage('Test'){           
