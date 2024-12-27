@@ -1,16 +1,17 @@
 pipeline{
-    agent none
+    agent any
     stages{
-        stage ('Getcode'){
-            agent any
+        stage ('Getcode'){           
             steps{
                 git 'https://github.com/jhdelca1/helloworld.git'
+                echo WORSPACE                
                 bat 'whoami'
-                bat 'hostname'
+                bat 'hostname'                
+                stash name:'code', includes:'*'
             }
         }
         stage ('Build'){
-            agent {'Secundario1'}
+            agent {label 'Secundario1'}
             steps{
                 echo 'No hacemos nada aquí va python. Jenkinsfile'
                 bat 'dir'
@@ -18,22 +19,24 @@ pipeline{
                 bat 'hostname'
             }
         }
-        stage('Test'){
-            agent {principal}
+        stage('Test'){           
             parallel{
                 stage('Test Unit'){
+                    agent {label 'Secundario1'}                    
                     steps{
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                         bat '''
                             set PYTHONPATH=%WORKSPACE%
                             python -m pytest --version
                             pytest --junitxml=result-unit.xml test\\unit
-                        '''   
+                        '''
+                        stash name:'unit-rest', includes:'result-unit.xml'
                         }
                     }
                 }
 
                 stage('RestWIREMOCK'){
+                    agent {label 'Secundario2'}                       
                     steps{
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                             bat '''                                
@@ -64,6 +67,7 @@ pipeline{
                         set PYTHONPATH=%WORKSPACE%
                         pytest --junitxml=result-rest.xml test\\rest
                     '''
+                    stash name:'result-rest', includes:'result-rest.xml'
                 }
             }
         }
