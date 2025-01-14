@@ -15,7 +15,7 @@ pipeline {
 			steps {
 				catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
 					bat '''
-						set PYTHONPATH=.
+						set PYTHONPATH=%WORKSPACE%
 						pytest --junitxml=result-unit.xml test\\unit
 					'''   
 					junit 'result*.xml'
