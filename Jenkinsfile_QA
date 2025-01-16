@@ -58,7 +58,8 @@ pipeline {
     		steps {
 			// Se pone exit-zero para que no de error al encontrar algun problema, y se pare la ejecucion
     			bat '''
-    				jmeter -n -t test\jmeter\flask.jmx -f -l flask.jtl
+    				//Se pone la rutadonde tengas el ejecutable de jmeter
+				C:\\Jose\\MasterDEVOPS\\Master\\Software\\jmeter\\apache-jmeter-5.6.3\\bin\\jmeter -n -t test\\jmeter\\flask.jmx -f -l flask.jtl
     			'''
     			perfReport sourceDatafiles: 'flask.jtl'    			
     		    
