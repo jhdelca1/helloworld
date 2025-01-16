@@ -56,6 +56,15 @@ pipeline {
 	}
         stage('Performance') {
     		steps {
+			//Levantamos flask 
+			catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
+                            bat '''
+                                set FLASK_APP=app\\api.py
+                                start flask run
+                                ping -n 5 127.0.0.1
+                            '''
+                        }	
+
 			// Se pone exit-zero para que no de error al encontrar algun problema, y se pare la ejecucion
     			bat '''
     				//Se pone la rutadonde tengas el ejecutable de jmeter
