@@ -49,10 +49,7 @@ pipeline {
             steps {
                 script {
                                         
-                    bat '''
-                    //    coverage xml
-			echo 'coverage'
-                    '''
+
                     
                     // Extraer métricas del reporte Cobertura
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
