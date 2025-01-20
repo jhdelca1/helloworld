@@ -84,6 +84,7 @@ pipeline {
 }
 post {
         cleanup {
+echo 'Limpieza'
 //            cleanWs();
         }
  }
