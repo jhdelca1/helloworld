@@ -48,36 +48,51 @@ pipeline {
 	stage('Coverage') {
             steps {
                 script {
-                                        
+                    bat '''
+                        coverage xml
+                    '''                   
 
                     
                     // Extraer métricas del reporte Cobertura
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-		    	def coberturaResult = cobertura coberturaReportFile: 'coverage.xml',conditionalCoverageTargets: '100,0,80', lineCoverageTargets: '100,0,85'
-
-			def lineCoverage = coberturaResult.resultElements.find { it.metric == 'Lines' }?.ratio?.toDouble() ?: 0.0
-			def branchCoverage = coberturaResult.resultElements.find { it.metric == 'Conditionals' }?.ratio?.toDouble() ?: 0.0
-
-			echo "Line Coverage: ${lineCoverage}%"
-			echo "Branch Coverage: ${branchCoverage}%"
-
-			// Evaluar los resultados según los criterios
-			def stageStatus = 'SUCCESS'
- 
-			if (lineCoverage < 85 || branchCoverage < 80) {
-				stageStatus = 'FAILURE'
-			} else if ((lineCoverage >= 85 && lineCoverage <= 95) ||   (branchCoverage >= 80 && branchCoverage <= 90)) {
-				stageStatus = 'UNSTABLE'
-			}
-
-			echo "Stage Status: ${stageStatus}"
-
-			// Establecer el estado de la etapa
-			if (stageStatus == 'FAILURE') {
-				currentBuild.result = 'FAILURE'
-			} else if (stageStatus == 'UNSTABLE') {
-				currentBuild.result = 'UNSTABLE'
-			}
+		    	// Lee el archivo XML generado por coverage.py
+	                    def coverageXml = readFile('coverage.xml')
+	                    def coverageParser = new XmlSlurper().parseText(coverageXml)
+	
+	                    // Extraer las métricas de cobertura
+	                    def lineCoverage = coverageParser.@line-rate.toDouble() * 100  // Line coverage en porcentaje
+	                    def branchCoverage = coverageParser.@branch-rate.toDouble() * 100  // Branch coverage en porcentaje
+	
+	                    echo "Line Coverage: ${lineCoverage}%"
+	                    echo "Branch Coverage: ${branchCoverage}%"
+	
+	                    // Evaluar las métricas y establecer el estado de la etapa
+	                    def stageStatus = 'SUCCESS'  // Predeterminado a verde (SUCCESS)
+	
+	                    // Evaluación de cobertura de líneas
+	                    if (lineCoverage < 85) {
+	                        stageStatus = 'FAILURE'  // Menos de 85% -> Rojo
+	                    } else if (lineCoverage >= 85 && lineCoverage <= 95) {
+	                        stageStatus = 'UNSTABLE'  // Entre 85% y 95% -> Inestable
+	                    }
+	
+	                    // Evaluación de cobertura de ramas/condiciones
+	                    if (branchCoverage < 80) {
+	                        stageStatus = 'FAILURE'  // Menos de 80% -> Rojo
+	                    } else if (branchCoverage >= 80 && branchCoverage <= 90) {
+	                        stageStatus = 'UNSTABLE'  // Entre 80% y 90% -> Inestable
+	                    }
+	
+	                    echo "Stage Status: ${stageStatus}"
+	
+	                    // Establece el estado del pipeline
+	                    if (stageStatus == 'FAILURE') {
+	                        currentBuild.result = 'FAILURE'
+	                    } else if (stageStatus == 'UNSTABLE') {
+	                        currentBuild.result = 'UNSTABLE'
+	                    } else {
+	                        currentBuild.result = 'SUCCESS'
+	                    }
 		   }
                     
                 }
