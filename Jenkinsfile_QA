@@ -23,21 +23,7 @@ pipeline {
                 }
             }
         }
-	stage('Coverage') {
-            steps {
-                script {
-                                        
-                        bat '''
-                            coverage xml
-                        '''
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,80', lineCoverageTargets: '100,0,90'
-                        }
-                    
-                }
-            }
-        }
-		
+
         stage('Static') {
     		steps {
     			bat '''
@@ -59,6 +45,21 @@ pipeline {
     		    
 		}
 	}
+	stage('Coverage') {
+            steps {
+                script {
+                                        
+                        bat '''
+                            coverage xml
+                        '''
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,80', lineCoverageTargets: '100,0,90'
+                        }
+                    
+                }
+            }
+        }
+		
         stage('Performance') {
     		steps {
 			//Levantamos flask 
