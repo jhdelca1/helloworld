@@ -85,11 +85,6 @@ pipeline {
 		}
 	}
 }
-post {
-        cleanup {
-        echo 'Limpieza del Workspace'
-        cleanWs();
-        }
-}
+
  	
 }
