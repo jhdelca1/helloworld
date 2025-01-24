@@ -11,60 +11,87 @@ pipeline {
 		        stash name:'code', includes:'**'
             }
         }
-		
-	    stage('Unit') {
-            agent {label 'Secundario1'}     
-            steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    unstash name:'code'
-                    bat '''
-                        set PYTHONPATH=%WORKSPACE%
-                        coverage run --branch --source=app --omit=app\\__init__.py,app\\api.py -m pytest --junitxml=result-unit.xml test\\unit
-                        coverage xml
-                    '''
-                    junit 'result*.xml'
+        stage('Tests')
+        {    
+    		parallel
+            {
+        	    stage('Unit') {
+                    agent {label 'Secundario1'}     
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            unstash name:'code'
+                            bat '''
+                                set PYTHONPATH=%WORKSPACE%
+                                coverage run --branch --source=app --omit=app\\__init__.py,app\\api.py -m pytest --junitxml=result-unit.xml test\\unit
+                                coverage xml
+                            '''
+                            junit 'result*.xml'
+                        }
+                        bat 'whoami'
+                        bat 'hostname'
+                        echo WORKSPACE
+        
+                    }
                 }
-                bat 'whoami'
-                bat 'hostname'
-                echo WORKSPACE
-
+    
+                stage('Static') {
+            		agent {label 'Secundario2'}         
+            		steps {
+            			unstash name:'code'
+            			bat '''
+            				flake8 --exit-zero --format=pylint app >flake8.out
+            			'''    
+            			recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')], qualityGates: [[threshold: 8, type: 'TOTAL', unstable: true], [threshold: 10, type: 'TOTAL', unstable: false]]
+            		    bat 'whoami'
+                        bat 'hostname'
+                        echo WORKSPACE
+        
+        	        }
+        	    }
+                stage('Security') {
+            		agent {label 'Secundario2'}         
+            		steps {
+        			// Se pone exit-zero para que no de error al encontrar algun problema, y se pare la ejecucion
+        			// Esta etapa puede dar error debido a que el plugin de Jenkins no lee correctamente el fichero de salida
+            			unstash name:'code'
+            			bat '''
+            				bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+            			'''
+            	
+            			recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
+            		    bat 'whoami'
+                        bat 'hostname'
+                        echo WORKSPACE
+        
+        		    }
+        	    }
+        	    stage('Performance') {
+            		steps {
+            		agent {label 'Secundario1'}            
+        			//Levantamos flask 
+        			catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
+                                    bat '''
+                                        set FLASK_APP=app\\api.py
+                                        start flask run
+                                        ping -n 5 127.0.0.1
+                                    '''
+                                }	
+                    unstash name:'code'
+        			// Se pone exit-zero para que no de error al encontrar algun problema, y se pare la ejecucion
+            			bat '''
+            				//Se pone la rutadonde tengas el ejecutable de jmeter
+        				C:\\Jose\\MasterDEVOPS\\Master\\Software\\jmeter\\apache-jmeter-5.6.3\\bin\\jmeter -n -t test\\jmeter\\flask.jmx -f -l flask.jtl
+            			'''
+            			perfReport sourceDataFiles: 'flask.jtl'    			
+            		    
+    		        }
+                }
             }
-        }
-
-        stage('Static') {
-    		agent {label 'Secundario2'}         
-    		steps {
-    			unstash name:'code'
-    			bat '''
-    				flake8 --exit-zero --format=pylint app >flake8.out
-    			'''    
-    			recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')], qualityGates: [[threshold: 8, type: 'TOTAL', unstable: true], [threshold: 10, type: 'TOTAL', unstable: false]]
-    		    bat 'whoami'
-                bat 'hostname'
-                echo WORKSPACE
-
-	        }
-	    }
-        stage('Security') {
-    		agent {label 'Secundario2'}         
-    		steps {
-			// Se pone exit-zero para que no de error al encontrar algun problema, y se pare la ejecucion
-			// Esta etapa puede dar error debido a que el plugin de Jenkins no lee correctamente el fichero de salida
-    			unstash name:'code'
-    			bat '''
-    				bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
-    			'''
-    	
-    			recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], [threshold: 4, type: 'TOTAL', unstable: false]]
-    		    bat 'whoami'
-                bat 'hostname'
-                echo WORKSPACE
-
-		    }
-	    }
+        }    
 	    stage('Coverage') {
             
             steps {
+                	agent {label 'Secundario1'}            
                 script {
                    
 			       catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){ 
@@ -78,27 +105,8 @@ pipeline {
             }
         }
 		
-        stage('Performance') {
-    		steps {
-    		agent {label 'Secundario1'}            
-			//Levantamos flask 
-			catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
-                            bat '''
-                                set FLASK_APP=app\\api.py
-                                start flask run
-                                ping -n 5 127.0.0.1
-                            '''
-                        }	
-            unstash name:'code'
-			// Se pone exit-zero para que no de error al encontrar algun problema, y se pare la ejecucion
-    			bat '''
-    				//Se pone la rutadonde tengas el ejecutable de jmeter
-				C:\\Jose\\MasterDEVOPS\\Master\\Software\\jmeter\\apache-jmeter-5.6.3\\bin\\jmeter -n -t test\\jmeter\\flask.jmx -f -l flask.jtl
-    			'''
-    			perfReport sourceDataFiles: 'flask.jtl'    			
-    		    
-		}
+
 	}
-}
+
 
 }
