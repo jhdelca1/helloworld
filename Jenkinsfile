@@ -56,7 +56,7 @@ pipeline {
                 script {
                     //   Tratamos el fichero de cobertura generado en la etapa unit
 			        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){ 
-				        cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '90,0,80', lineCoverageTargets: '95,0,85'
+				        cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '90,0,80', lineCoverageTargets: '95,0,85' , onlyStable: false
 			        }
 			        
                     
