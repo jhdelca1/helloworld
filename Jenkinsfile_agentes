@@ -24,6 +24,7 @@ pipeline {
                                 set PYTHONPATH=%WORKSPACE%
                                 coverage run --branch --source=app --omit=app\\__init__.py,app\\api.py -m pytest --junitxml=result-unit.xml test\\unit
                                 coverage xml
+ 				stash name:'coverxml', includes:'**'
                             '''
                             junit 'result*.xml'
                         }
@@ -95,7 +96,8 @@ pipeline {
                 script {
                    
 			       catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){ 
-				        cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,85', lineCoverageTargets: '100,0,90',OnlyStable:false
+				        unstash name:'coverxml'
+					cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,85', lineCoverageTargets: '100,0,90',OnlyStable:false
 			        }
 			        bat 'whoami'
                     bat 'hostname'
